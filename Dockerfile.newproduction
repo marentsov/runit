@@ -1,0 +1,45 @@
+FROM node:23
+
+# Устанавливаем системные зависимости
+RUN apt update && apt install -y make curl
+
+# Устанавливаем Docker CLI (без daemon)
+ENV DOCKER_CHANNEL=stable
+ENV DOCKER_VERSION=20.10.21
+RUN curl -fsSL "https://download.docker.com/linux/static/${DOCKER_CHANNEL}/x86_64/docker-${DOCKER_VERSION}.tgz" \
+  | tar -xzC /usr/local/bin --strip=1 docker/docker
+
+# Собираем Docker образы для раннеров ПЕРЕД основным приложением
+WORKDIR /tmp/runners
+COPY backend/src/runner/dockers ./dockers
+
+# Собираем Python раннер
+RUN docker build -t runit-local-runner-python -f dockers/python/Dockerfile .
+
+# Собираем PHP раннер
+RUN docker build -t runit-local-runner-php -f dockers/php/Dockerfile .
+
+# Собираем Java раннер
+RUN docker build -t runit-local-runner-java -f dockers/java/Dockerfile .
+
+# Собираем Ruby раннер
+RUN docker build -t runit-local-runner-ruby -f dockers/ruby/Dockerfile .
+
+# Теперь основное приложение
+WORKDIR /usr/src/runit
+COPY . .
+
+# Устанавливаем зависимости
+RUN yarn install --frozen-lockfile
+
+# Собираем приложение
+RUN make build
+
+# Создаем скрипт запуска с миграциями
+RUN echo '#!/bin/bash\n\
+echo "Running database migrations..."\n\
+make db-migrate\n\
+echo "Starting production server..."\n\
+make start-prod' > /usr/src/runit/start.sh && chmod +x /usr/src/runit/start.sh
+
+CMD [ "/usr/src/runit/start.sh" ]
