@@ -20,8 +20,11 @@ start:
 start-prod:
 	make -C backend start-prod
 
-build:
+build: docker-builds
 	yarn run build
+
+docker-builds:
+	make -C backend docker-builds
 
 lint:
 	make lint-frontend
