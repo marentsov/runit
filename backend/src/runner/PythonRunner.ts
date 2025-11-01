@@ -2,8 +2,8 @@ import IRunner from './IRunner';
 
 export default class PythonRunner implements IRunner {
   private runnerUrl = process.env.NODE_ENV === 'production'
-    ? 'https://твой-python-runner.onrender.com'
-    : 'http://localhost:5000';
+    ? 'https://runit-python-docker.onrender.com'
+    : 'http://localhost:5002';
 
   async run(code: string) {
     try {
