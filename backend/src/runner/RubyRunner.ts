@@ -2,7 +2,7 @@ import IRunner from './IRunner';
 
 export default class RubyRunner implements IRunner {
   private runnerUrl = process.env.NODE_ENV === 'production'
-    ? 'https://твой-ruby-runner.onrender.com'
+    ? 'https://runit-ruby-docker.onrender.com'
     : 'http://localhost:5005';
 
   async run(code: string) {
