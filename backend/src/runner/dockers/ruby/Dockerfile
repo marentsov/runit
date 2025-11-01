@@ -1,6 +1,9 @@
-FROM ruby:3.2-slim
+FROM ruby:3.2
+
 WORKDIR /app
-RUN gem install sinatra rackup puma
-COPY backend/src/runner/dockers/ruby/server.rb /app/server.rb
+
+COPY server.rb .
+
 EXPOSE 5005
+
 CMD ["ruby", "server.rb"]
