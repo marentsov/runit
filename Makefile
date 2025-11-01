@@ -20,7 +20,7 @@ start:
 start-prod:
 	make -C backend start-prod
 
-build: docker-builds
+build:
 	yarn run build
 
 docker-builds:

@@ -1,8 +1,8 @@
 FROM python:3-slim
 WORKDIR /app
-RUN pip install flask
-COPY server.py .
-CMD ["python", "server.py"]
+RUN pip install flask flask-cors
+COPY backend/src/runner/dockers/python/server.py /app/server.py
+CMD ["python", "/app/server.py"]
 
 # FROM python:3-slim
 #
