@@ -2,7 +2,7 @@ import IRunner from './IRunner';
 
 export default class JavaRunner implements IRunner {
   private runnerUrl = process.env.NODE_ENV === 'production'
-    ? 'https://твой-java-runner.onrender.com'
+    ? 'https://runit-java-docker.onrender.com'
     : 'http://localhost:5004';
 
   async run(code: string) {
