@@ -1,28 +1,30 @@
-require 'webrick'
+require 'sinatra'
 require 'json'
 require 'tempfile'
 
-server = WEBrick::HTTPServer.new(Port: 5000)
+set :port, 5005
+set :bind, '0.0.0.0'
 
-server.mount_proc '/health' do |req, res|
-  res['Content-Type'] = 'application/json'
-  res['Access-Control-Allow-Origin'] = '*'
-  res.body = { status: 'Ruby runner is running' }.to_json
+before do
+  headers 'Access-Control-Allow-Origin' => '*',
+          'Access-Control-Allow-Methods' => ['POST', 'OPTIONS'],
+          'Access-Control-Allow-Headers' => 'Content-Type'
 end
 
-server.mount_proc '/execute' do |req, res|
-  res['Content-Type'] = 'application/json'
-  res['Access-Control-Allow-Origin'] = '*'
-  res['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-  res['Access-Control-Allow-Headers'] = 'Content-Type'
+options '*' do
+  200
+end
 
-  if req.request_method == 'OPTIONS'
-    res.status = 200
-    next
-  end
+get '/health' do
+  content_type :json
+  { status: 'Ruby runner is running' }.to_json
+end
+
+post '/execute' do
+  content_type :json
 
   begin
-    data = JSON.parse(req.body)
+    data = JSON.parse(request.body.read)
     code = data['code'] || ''
 
     temp_file = Tempfile.new(['ruby_', '.rb'])
@@ -31,13 +33,16 @@ server.mount_proc '/execute' do |req, res|
 
     output = `ruby #{temp_file.path} 2>&1`
 
-    res.body = { output: output.strip }.to_json
+    {
+      output: output.strip,
+      success: $?.success?
+    }.to_json
+
+  rescue JSON::ParserError => e
+    { output: "JSON parse error: #{e.message}" }.to_json
   rescue => e
-    res.body = { output: "Error: #{e.message}" }.to_json
+    { output: "Error: #{e.message}" }.to_json
   ensure
     temp_file.unlink if temp_file
   end
 end
-
-trap('INT') { server.shutdown }
-server.start

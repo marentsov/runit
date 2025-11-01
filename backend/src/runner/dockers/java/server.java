@@ -8,7 +8,7 @@ import java.nio.file.Path;
 
 public class server {
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(5000), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(5004), 0);
         server.createContext("/execute", new CodeHandler());
         server.createContext("/health", new HealthHandler());
         server.setExecutor(null);
