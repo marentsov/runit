@@ -13,7 +13,7 @@ public class server {
         server.createContext("/health", new HealthHandler());
         server.setExecutor(null);
         server.start();
-        System.out.println("Java runner started on port 5000");
+        System.out.println("Java runner started on port 5004"); //
     }
 
     static class HealthHandler implements HttpHandler {
@@ -50,9 +50,8 @@ public class server {
                 InputStream is = exchange.getRequestBody();
                 String requestBody = new String(is.readAllBytes());
 
-                // Парсим JSON вручную (упрощенно)
-                String code = requestBody.replaceAll(".*\"code\":\"?([^\"]*)\"?.*", "$1");
-                code = code.replace("\\n", "\n").replace("\\\"", "\"");
+                // ЛУЧШИЙ JSON ПАРСИНГ
+                String code = extractCodeFromJson(requestBody);
 
                 Path tempFile = Files.createTempFile("java_", ".java");
                 Files.writeString(tempFile, "public class TempClass { public static void main(String[] args) { " + code + " } }");
@@ -62,7 +61,9 @@ public class server {
                 String output = new String(process.getInputStream().readAllBytes());
                 String error = new String(process.getErrorStream().readAllBytes());
 
-                String response = "{\"output\":\"" + (output.isEmpty() ? error : output) + "\"}";
+                String result = output.isEmpty() ? error : output;
+                String response = "{\"output\":\"" + escapeJson(result) + "\"}"; // ← ЭКРАНИРОВАНИЕ
+
                 exchange.getResponseHeaders().set("Content-Type", "application/json");
                 exchange.sendResponseHeaders(200, response.length());
                 OutputStream os = exchange.getResponseBody();
@@ -77,6 +78,31 @@ public class server {
                 os.write(response.getBytes());
                 os.close();
             }
+        }
+
+        private String extractCodeFromJson(String json) {
+            try {
+                // Простой парсинг JSON
+                int start = json.indexOf("\"code\":\"") + 8;
+                int end = json.lastIndexOf("\"");
+                if (start > 8 && end > start) {
+                    return json.substring(start, end)
+                              .replace("\\n", "\n")
+                              .replace("\\\"", "\"")
+                              .replace("\\\\", "\\");
+                }
+            } catch (Exception e) {
+                // Если парсинг не удался, вернем как есть
+            }
+            return "";
+        }
+
+        private String escapeJson(String text) {
+            return text.replace("\\", "\\\\")
+                      .replace("\"", "\\\"")
+                      .replace("\n", "\\n")
+                      .replace("\r", "\\r")
+                      .replace("\t", "\\t");
         }
     }
 }
