@@ -2,7 +2,7 @@ import IRunner from './IRunner';
 
 export default class PhpRunner implements IRunner {
   private runnerUrl = process.env.NODE_ENV === 'production'
-    ? 'https://runit-php-docker.onrender.com'
+    ? 'https://runit-gwvn.onrender.com'
     : 'http://localhost:5003';
 
   async run(code: string) {
