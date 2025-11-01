@@ -1,3 +1,4 @@
-FROM ruby:3.4.1-alpine3.21
+FROM ruby:3.2-slim
 WORKDIR /app
-CMD [ "ruby" ]
+COPY backend/src/runner/dockers/java/server.rb /app/server.rb
+CMD ["ruby", "server.rb"]

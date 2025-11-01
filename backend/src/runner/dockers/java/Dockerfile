@@ -1,3 +1,5 @@
-FROM openjdk:25
+FROM openjdk:21-slim
 WORKDIR /app
-CMD ["java", "Main.java"]
+COPY backend/src/runner/dockers/java/server.java /app/server.java
+RUN javac server.java
+CMD ["java", "server"]
